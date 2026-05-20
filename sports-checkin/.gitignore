@@ -1,0 +1,21 @@
+# Dependencies — never commit these
+node_modules/
+*/node_modules/
+
+# Environment — never commit your secrets
+.env
+backend/.env
+
+# Database — don't commit data files
+backend/data/
+
+# Frontend source dist — we commit backend/public instead
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
