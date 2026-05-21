@@ -1,4 +1,4 @@
-// server.js — Main Express server (Glitch + Render compatible)
+// server.js — Main Express server
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
@@ -6,6 +6,7 @@ const helmet  = require('helmet');
 const morgan  = require('morgan');
 const path    = require('path');
 const { initDb } = require('./db/init');
+const { startScheduler } = require('./scheduler');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -26,8 +27,11 @@ app.use('/api/guardians',    require('./routes/guardians'));
 app.use('/api/logs',         require('./routes/logs'));
 app.use('/api/staff',        require('./routes/staff'));
 app.use('/api/dashboard',    require('./routes/dashboard'));
+app.use('/api/broadcast',    require('./routes/broadcast'));
+app.use('/api/analytics',    require('./routes/analytics'));
+app.use('/api/portal',       require('./routes/portal'));
 
-// ── Health check (also used by keep-alive ping) ────────────────
+// ── Health check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 // ── SPA fallback ───────────────────────────────────────────────
@@ -43,22 +47,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
-// ── Keep-alive self-ping (prevents free-tier sleep) ───────────
-// Set SELF_URL=https://your-app.glitch.me in your .env to activate
+// ── Keep-alive self-ping ───────────────────────────────────────
 const SELF_URL = process.env.SELF_URL || '';
 if (SELF_URL) {
   setInterval(() => {
-    fetch(SELF_URL + '/api/health')
-      .then(() => console.log('Keep-alive ping sent'))
-      .catch(() => {});
-  }, 4 * 60 * 1000); // every 4 minutes
+    fetch(SELF_URL + '/api/health').catch(() => {});
+  }, 4 * 60 * 1000);
 }
 
 // ── Boot ───────────────────────────────────────────────────────
 initDb().then(() => {
+  startScheduler();
   app.listen(PORT, () => {
     console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-    console.log(`   App: http://localhost:${PORT}`);
     console.log(`   API: http://localhost:${PORT}/api/health\n`);
   });
 }).catch(err => {

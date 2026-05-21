@@ -111,8 +111,9 @@ async function applySchema(db) {
       pin        TEXT NOT NULL UNIQUE,
       role       TEXT DEFAULT 'staff',
       active     INTEGER DEFAULT 1,
-      sport_group TEXT DEFAULT NULL,
-      created_at TEXT DEFAULT (datetime('now'))
+      sport_group  TEXT DEFAULT NULL,
+      phone_number TEXT DEFAULT NULL,
+      created_at   TEXT DEFAULT (datetime('now'))
     );
   `);
 }

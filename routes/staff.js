@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     await getDb();
-    const { name, pin, role, sport_group } = req.body;
+    const { name, pin, role, sport_group, phone_number } = req.body;
     if (!name || !pin) return res.status(400).json({ error: 'name and pin required' });
     const validRoles = ['admin','coordinator','coach','checkin_staff'];
     const r = validRoles.includes(role) ? role : 'checkin_staff';
@@ -43,8 +43,8 @@ router.post('/', async (req, res) => {
     const existing = queryOne('SELECT id FROM staff WHERE pin=?', [pin]);
     if (existing) return res.status(409).json({ error: 'PIN already in use' });
     const id = insert(
-      'INSERT INTO staff (name,pin,role,sport_group) VALUES (?,?,?,?)',
-      [name, pin, r, sport_group || null]
+      'INSERT INTO staff (name,pin,role,sport_group,phone_number) VALUES (?,?,?,?,?)',
+      [name, pin, r, sport_group || null, phone_number || null]
     );
     res.status(201).json({ id, name, role: r, sport_group: sport_group || null });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -61,9 +61,10 @@ router.put('/:id', async (req, res) => {
       const conflict = queryOne('SELECT id FROM staff WHERE pin=? AND id!=?', [pin, req.params.id]);
       if (conflict) return res.status(409).json({ error: 'PIN already in use' });
     }
+    const { name: n2, pin: p2, role: r2, sport_group: sg2, phone_number: ph2, active: a2 } = req.body;
     exec(
-      'UPDATE staff SET name=?,pin=?,role=?,sport_group=?,active=? WHERE id=?',
-      [name||cur.name, pin||cur.pin, role||cur.role, sport_group||cur.sport_group, active??cur.active, req.params.id]
+      'UPDATE staff SET name=?,pin=?,role=?,sport_group=?,phone_number=?,active=? WHERE id=?',
+      [n2||cur.name, p2||cur.pin, r2||cur.role, sg2||cur.sport_group, ph2||cur.phone_number, a2??cur.active, req.params.id]
     );
     res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
