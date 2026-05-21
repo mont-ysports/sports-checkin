@@ -122,11 +122,11 @@ async function seedData(db) {
 
   // Sample participants
   const samples = [
-    { fn:'Amara',    ln:'Mensah',  dob:'2016-03-12', sport:'Football',   pin:'1001', g1n:'Fatima Mensah',  g1r:'Mother', g1p:'231770123456', g2n:'Kofi Mensah',  g2r:'Father', g2p:'231880654321' },
-    { fn:'Grace',    ln:'Kollie',  dob:'2015-07-04', sport:'Athletics',  pin:'1002', g1n:'Mary Kollie',    g1r:'Mother', g1p:'231770111222' },
-    { fn:'Emmanuel', ln:'Dolo',    dob:'2014-11-20', sport:'Basketball', pin:'1003', g1n:'James Dolo',     g1r:'Father', g1p:'231880333444' },
-    { fn:'Precious', ln:'Tarr',    dob:'2016-01-30', sport:'Volleyball', pin:'1004', g1n:'Alice Tarr',     g1r:'Mother', g1p:'231770555666' },
-    { fn:'Samuel',   ln:'Cooper',  dob:'2015-05-18', sport:'Football',   pin:'1005', g1n:'David Cooper',   g1r:'Father', g1p:'231880777888' },
+    { fn:'Amara',    ln:'Mensah',  dob:'2016-03-12', sport:'Basketball', pin:'1001', g1n:'Fatima Mensah',  g1r:'Mother', g1p:'231770123456', g2n:'Kofi Mensah',  g2r:'Father', g2p:'231880654321' },
+    { fn:'Grace',    ln:'Kollie',  dob:'2015-07-04', sport:'Computer',   pin:'1002', g1n:'Mary Kollie',    g1r:'Mother', g1p:'231770111222' },
+    { fn:'Emmanuel', ln:'Dolo',    dob:'2014-11-20', sport:'Music',      pin:'1003', g1n:'James Dolo',     g1r:'Father', g1p:'231880333444' },
+    { fn:'Precious', ln:'Tarr',    dob:'2016-01-30', sport:'Basketball', pin:'1004', g1n:'Alice Tarr',     g1r:'Mother', g1p:'231770555666' },
+    { fn:'Samuel',   ln:'Cooper',  dob:'2015-05-18', sport:'Computer',   pin:'1005', g1n:'David Cooper',   g1r:'Father', g1p:'231880777888' },
   ];
   for (const s of samples) {
     const qr = 'QR' + Math.random().toString(36).substr(2,8).toUpperCase();
