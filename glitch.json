@@ -1,0 +1,22 @@
+{
+  "install": "npm install",
+  "start": "node server.js",
+  "watch": {
+    "ignore": [
+      "\\.sqlite$",
+      "^.data"
+    ],
+    "install": {
+      "include": [
+        "^package\\.json$"
+      ]
+    },
+    "restart": {
+      "include": [
+        "\\.js$",
+        "^\\.env$"
+      ]
+    },
+    "throttle": 1000
+  }
+}
