@@ -99,3 +99,54 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// POST /api/participants/bulk-import — import many participants at once
+router.post('/bulk-import', async (req, res) => {
+  try {
+    await db();
+    const { participants } = req.body;
+    if (!Array.isArray(participants) || participants.length === 0)
+      return res.status(400).json({ error: 'participants array required' });
+
+    const results = { imported: 0, skipped: 0, errors: [] };
+
+    for (const p of participants) {
+      try {
+        const { first_name, last_name, date_of_birth, sport_group, pin, guardians } = p;
+        if (!first_name || !last_name || !sport_group || !pin) {
+          results.skipped++;
+          results.errors.push(`Skipped ${first_name} ${last_name}: missing required fields`);
+          continue;
+        }
+        // Skip if PIN already exists
+        const existing = queryOne('SELECT id FROM participants WHERE pin=?', [pin]);
+        if (existing) {
+          results.skipped++;
+          results.errors.push(`Skipped ${first_name} ${last_name}: PIN ${pin} already in use`);
+          continue;
+        }
+        const qr = 'QR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2,3).toUpperCase();
+        const pid = insert(
+          'INSERT INTO participants (first_name,last_name,date_of_birth,sport_group,medical_notes,pin,qr_code) VALUES (?,?,?,?,?,?,?)',
+          [first_name, last_name, date_of_birth||null, sport_group, p.medical_notes||'', pin, qr]
+        );
+        if (Array.isArray(guardians)) {
+          for (const g of guardians) {
+            if (g.full_name && g.phone_number) {
+              insert(
+                'INSERT INTO guardians (participant_id,full_name,relationship,phone_number,wa_verified) VALUES (?,?,?,?,?)',
+                [pid, g.full_name, g.relationship||'Guardian', g.phone_number, 0]
+              );
+            }
+          }
+        }
+        results.imported++;
+      } catch (err) {
+        results.skipped++;
+        results.errors.push(`Error on ${p.first_name} ${p.last_name}: ${err.message}`);
+      }
+    }
+
+    res.status(201).json(results);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
