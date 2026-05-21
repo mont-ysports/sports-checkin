@@ -111,6 +111,7 @@ async function applySchema(db) {
       pin        TEXT NOT NULL UNIQUE,
       role       TEXT DEFAULT 'staff',
       active     INTEGER DEFAULT 1,
+      sport_group TEXT DEFAULT NULL,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
@@ -119,6 +120,11 @@ async function applySchema(db) {
 async function seedData(db) {
   // Default admin
   db.run("INSERT OR IGNORE INTO staff (name, pin, role) VALUES ('Admin','0000','admin')");
+  db.run("INSERT OR IGNORE INTO staff (name, pin, role) VALUES ('Coordinator','1111','coordinator')");
+  db.run("INSERT OR IGNORE INTO staff (name, pin, role, sport_group) VALUES ('Coach Basketball','2222','coach','Basketball')");
+  db.run("INSERT OR IGNORE INTO staff (name, pin, role, sport_group) VALUES ('Coach Computer','3333','coach','Computer')");
+  db.run("INSERT OR IGNORE INTO staff (name, pin, role, sport_group) VALUES ('Coach Music','4444','coach','Music')");
+  db.run("INSERT OR IGNORE INTO staff (name, pin, role) VALUES ('Staff Member','5555','checkin_staff')");
 
   // Sample participants
   const samples = [
