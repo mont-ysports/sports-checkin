@@ -66,3 +66,4 @@ initDb().then(() => {
   console.error('Failed to start:', err);
   process.exit(1);
 });
+ 
