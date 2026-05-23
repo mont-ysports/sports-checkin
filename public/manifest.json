@@ -1,0 +1,41 @@
+{
+  "name": "Sports Program 2026",
+  "short_name": "Sports 2026",
+  "description": "2026 Children Vacation Sports Program Check-in System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1F2D",
+  "theme_color": "#00E5A0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Check-in Kiosk",
+      "short_name": "Kiosk",
+      "description": "Open the check-in station",
+      "url": "/kiosk",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View attendance dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
