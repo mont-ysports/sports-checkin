@@ -30,6 +30,7 @@ app.use('/api/dashboard',    require('./routes/dashboard'));
 app.use('/api/broadcast',    require('./routes/broadcast'));
 app.use('/api/analytics',    require('./routes/analytics'));
 app.use('/api/portal',       require('./routes/portal'));
+app.use('/api/sheets',       require('./routes/sheets'));
 
 // ── Health check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
