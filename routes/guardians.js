@@ -42,3 +42,45 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// POST /api/guardians/bulk-verify — mark all unverified guardians as verified
+router.post('/bulk-verify', async (req, res) => {
+  try {
+    await getDb();
+    const { group } = req.body; // optional — filter by sport group
+    let sql, params;
+    if (group && group !== 'All') {
+      sql = `UPDATE guardians SET wa_verified=1
+             WHERE wa_verified=0
+             AND participant_id IN (
+               SELECT id FROM participants WHERE sport_group=? AND active=1
+             )`;
+      params = [group];
+    } else {
+      sql = 'UPDATE guardians SET wa_verified=1 WHERE wa_verified=0';
+      params = [];
+    }
+    exec(sql, params);
+    const count = query('SELECT changes() as c')[0]?.c || 0;
+    // Get updated unverified count
+    const remaining = query("SELECT COUNT(*) as c FROM guardians WHERE wa_verified=0").c;
+    res.json({ success: true, verified: count, remaining });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/guardians/unverified-count — how many unverified guardians exist
+router.get('/unverified-count', async (req, res) => {
+  try {
+    await getDb();
+    const totalRow   = query("SELECT COUNT(*) as c FROM guardians WHERE wa_verified=0");
+    const total      = totalRow[0]?.c || 0;
+    const byGroup    = query(`
+      SELECT p.sport_group, COUNT(g.id) as count
+      FROM guardians g
+      JOIN participants p ON p.id = g.participant_id
+      WHERE g.wa_verified = 0 AND p.active = 1
+      GROUP BY p.sport_group
+    `);
+    res.json({ total, byGroup });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
