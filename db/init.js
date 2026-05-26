@@ -88,6 +88,16 @@ async function applySchema(db) {
       sms_enabled    INTEGER DEFAULT 1,
       created_at     TEXT DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS emergency_contacts (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      participant_id INTEGER NOT NULL,
+      full_name      TEXT NOT NULL,
+      phone_number   TEXT NOT NULL,
+      relationship   TEXT DEFAULT 'Emergency Contact',
+      notes          TEXT DEFAULT '',
+      created_at     TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS session_logs (
       id             INTEGER PRIMARY KEY AUTOINCREMENT,
       participant_id INTEGER NOT NULL,

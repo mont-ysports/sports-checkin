@@ -31,6 +31,7 @@ app.use('/api/broadcast',    require('./routes/broadcast'));
 app.use('/api/analytics',    require('./routes/analytics'));
 app.use('/api/portal',       require('./routes/portal'));
 app.use('/api/sheets',       require('./routes/sheets'));
+app.use('/api/emergency',    require('./routes/emergency'));
 
 // ── Health check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));

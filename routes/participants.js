@@ -46,8 +46,9 @@ router.get('/:id', async (req, res) => {
     await db();
     const p = queryOne('SELECT * FROM participants WHERE id=?', [req.params.id]);
     if (!p) return res.status(404).json({error:'Not found'});
-    const guardians = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
-    res.json({...p, guardians});
+    const guardians  = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
+    const emergency  = query('SELECT * FROM emergency_contacts WHERE participant_id=?', [p.id]);
+    res.json({...p, guardians, emergency_contacts: emergency});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -71,9 +72,18 @@ router.post('/', async (req, res) => {
             [pid, g.full_name, g.relationship||'Guardian', g.phone_number, g.wa_verified?1:0]);
       }
     }
+    // Save emergency contact if provided
+    if (req.body.emergency_contact?.full_name && req.body.emergency_contact?.phone_number) {
+      const ec = req.body.emergency_contact;
+      insert(
+        'INSERT INTO emergency_contacts (participant_id, full_name, phone_number, relationship, notes) VALUES (?,?,?,?,?)',
+        [pid, ec.full_name, ec.phone_number, ec.relationship||'Emergency Contact', ec.notes||'']
+      );
+    }
     const created   = queryOne('SELECT * FROM participants WHERE id=?', [pid]);
     const glist     = query('SELECT * FROM guardians WHERE participant_id=?', [pid]);
-    res.status(201).json({...created, guardians:glist});
+    const ecList    = query('SELECT * FROM emergency_contacts WHERE participant_id=?', [pid]);
+    res.status(201).json({...created, guardians:glist, emergency_contacts:ecList});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -139,6 +149,14 @@ router.post('/bulk-import', async (req, res) => {
               );
             }
           }
+        }
+        // Save emergency contact if provided
+        if (p.emergency_contact?.full_name && p.emergency_contact?.phone_number) {
+          const ec = p.emergency_contact;
+          insert(
+            'INSERT INTO emergency_contacts (participant_id, full_name, phone_number, relationship, notes) VALUES (?,?,?,?,?)',
+            [pid, ec.full_name, ec.phone_number, ec.relationship||'Emergency Contact', ec.notes||'']
+          );
         }
         results.imported++;
       } catch (err) {
