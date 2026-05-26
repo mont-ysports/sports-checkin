@@ -15,9 +15,13 @@ async function getDb() {
   if (fs.existsSync(DB_PATH)) {
     const buf = fs.readFileSync(DB_PATH);
     _db = new SQL.Database(buf);
+    // Always run migrations on existing databases
+    runMigrations(_db);
+    saveDb();
   } else {
     _db = new SQL.Database();
     await applySchema(_db);
+    runMigrations(_db);
     await seedData(_db);
     saveDb();
   }
@@ -126,6 +130,34 @@ async function applySchema(db) {
       created_at   TEXT DEFAULT (datetime('now'))
     );
   `);
+}
+
+// Run migrations — safe to run on every startup, only applies missing changes
+function runMigrations(db) {
+  // Migration 1: Add emergency_contacts table if it doesn't exist
+  db.run(`
+    CREATE TABLE IF NOT EXISTS emergency_contacts (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      participant_id INTEGER NOT NULL,
+      full_name      TEXT NOT NULL,
+      phone_number   TEXT NOT NULL,
+      relationship   TEXT DEFAULT 'Emergency Contact',
+      notes          TEXT DEFAULT '',
+      created_at     TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Migration 2: Add phone_number to staff table if it doesn't exist
+  try {
+    db.run('ALTER TABLE staff ADD COLUMN phone_number TEXT DEFAULT NULL');
+  } catch(e) { /* column already exists — safe to ignore */ }
+
+  // Migration 3: Add sport_group to staff table if it doesn't exist
+  try {
+    db.run('ALTER TABLE staff ADD COLUMN sport_group TEXT DEFAULT NULL');
+  } catch(e) { /* column already exists — safe to ignore */ }
+
+  console.log('✅ Migrations applied');
 }
 
 async function seedData(db) {
