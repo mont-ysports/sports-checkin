@@ -24,9 +24,10 @@ router.get('/lookup/pin/:pin', async (req, res) => {
     await db();
     const p = queryOne('SELECT * FROM participants WHERE pin=? AND active=1', [req.params.pin]);
     if (!p) return res.status(404).json({error:'No participant found with that PIN'});
-    const guardians = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
-    const lastLog   = queryOne('SELECT * FROM session_logs WHERE participant_id=? ORDER BY event_time DESC LIMIT 1', [p.id]);
-    res.json({...p, guardians, lastLog});
+    const guardians  = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
+    const emergency  = query('SELECT * FROM emergency_contacts WHERE participant_id=?', [p.id]);
+    const lastLog    = queryOne('SELECT * FROM session_logs WHERE participant_id=? ORDER BY event_time DESC LIMIT 1', [p.id]);
+    res.json({...p, guardians, emergency_contacts: emergency, lastLog});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
@@ -35,9 +36,10 @@ router.get('/lookup/qr/:code', async (req, res) => {
     await db();
     const p = queryOne('SELECT * FROM participants WHERE qr_code=? AND active=1', [req.params.code]);
     if (!p) return res.status(404).json({error:'No participant found'});
-    const guardians = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
-    const lastLog   = queryOne('SELECT * FROM session_logs WHERE participant_id=? ORDER BY event_time DESC LIMIT 1', [p.id]);
-    res.json({...p, guardians, lastLog});
+    const guardians  = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
+    const emergency  = query('SELECT * FROM emergency_contacts WHERE participant_id=?', [p.id]);
+    const lastLog    = queryOne('SELECT * FROM session_logs WHERE participant_id=? ORDER BY event_time DESC LIMIT 1', [p.id]);
+    res.json({...p, guardians, emergency_contacts: emergency, lastLog});
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
