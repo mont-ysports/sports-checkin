@@ -16,11 +16,15 @@ router.get('/', async (req, res) => {
       FROM participants p WHERE p.active=1 ORDER BY p.last_name, p.first_name
     `);
     // Attach full guardian data so Edit form pre-populates phone numbers
-    const withGuardians = rows.map(p => ({
-      ...p,
-      guardians: query('SELECT * FROM guardians WHERE participant_id=?', [p.id]),
-      emergency_contact: query('SELECT * FROM emergency_contacts WHERE participant_id=? LIMIT 1', [p.id])[0] || null,
-    }));
+    const withGuardians = rows.map(p => {
+      let emergency_contact = null;
+      try { emergency_contact = query('SELECT * FROM emergency_contacts WHERE participant_id=? LIMIT 1', [p.id])[0] || null; } catch(e) {}
+      return {
+        ...p,
+        guardians: query('SELECT * FROM guardians WHERE participant_id=?', [p.id]),
+        emergency_contact,
+      };
+    });
     res.json(withGuardians);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
