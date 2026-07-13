@@ -15,20 +15,14 @@ router.get('/', async (req, res) => {
         (SELECT event_time  FROM session_logs WHERE participant_id=p.id ORDER BY event_time DESC LIMIT 1) as last_event_time
       FROM participants p WHERE p.active=1 ORDER BY p.last_name, p.first_name
     `);
-    // Attach full guardian data so Edit form pre-populates phone numbers
-    const withGuardians = rows.map(p => ({
-      ...p,
-      guardians: query('SELECT * FROM guardians WHERE participant_id=?', [p.id]),
-      emergency_contact: query('SELECT * FROM emergency_contacts WHERE participant_id=? LIMIT 1', [p.id])[0] || null,
-    }));
-    res.json(withGuardians);
+    res.json(rows);
   } catch(e) { res.status(500).json({error:e.message}); }
 });
 
 router.get('/lookup/pin/:pin', async (req, res) => {
   try {
     await db();
-    const p = queryOne('SELECT * FROM participants WHERE UPPER(pin)=UPPER(?) AND active=1', [req.params.pin]);
+    const p = queryOne('SELECT * FROM participants WHERE pin=? AND active=1', [req.params.pin]);
     if (!p) return res.status(404).json({error:'No participant found with that PIN'});
     const guardians  = query('SELECT * FROM guardians WHERE participant_id=?', [p.id]);
     const emergency  = query('SELECT * FROM emergency_contacts WHERE participant_id=?', [p.id]);
@@ -66,7 +60,6 @@ router.post('/', async (req, res) => {
     const { first_name, last_name, date_of_birth, sport_group, medical_notes, pin, guardians } = req.body;
     if (!first_name||!last_name||!sport_group||!pin)
       return res.status(400).json({error:'first_name, last_name, sport_group, pin required'});
-    // PIN can be any format (numeric or alphanumeric like SP-2026-0001)
     const existing = queryOne('SELECT id FROM participants WHERE pin=?', [pin]);
     if (existing) return res.status(409).json({error:'PIN already in use'});
     const qr = 'QR' + Date.now().toString(36).toUpperCase();
@@ -119,12 +112,6 @@ router.delete('/:id', async (req, res) => {
 
 module.exports = router;
 
-// Normalize PIN: extract last 4 digits from SP-2026-XXXX format, otherwise keep as-is
-function normalizePin(raw) {
-  const match = String(raw).match(/^SP-\d{4}-(\d{4})$/i);
-  return match ? match[1] : String(raw).trim();
-}
-
 // POST /api/participants/bulk-import — import many participants at once
 router.post('/bulk-import', async (req, res) => {
   try {
@@ -137,9 +124,7 @@ router.post('/bulk-import', async (req, res) => {
 
     for (const p of participants) {
       try {
-        const { first_name, last_name, date_of_birth, sport_group, guardians } = p;
-        // Support both 'pin' and 'registrationId' columns; normalize SP-YYYY-XXXX → last 4 digits
-        const pin = normalizePin(p.pin || p.registrationId);
+        const { first_name, last_name, date_of_birth, sport_group, pin, guardians } = p;
         if (!first_name || !last_name || !sport_group || !pin) {
           results.skipped++;
           results.errors.push(`Skipped ${first_name} ${last_name}: missing required fields`);
